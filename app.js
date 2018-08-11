@@ -11,17 +11,21 @@
 
 // REQUIRES
 // ==================================================
-var express = require('express')
+var express = require('express');
+
+var mysql = require('mysql'), // node-mysql module
+    myConnection = require('express-myconnection');
 
 
 // IMPORTS
 // ==================================================
+var dbOptions = require('./config/config').dbOptions;
 var appRoute = require('./routes/appRoute');
-
+var errorHandler = require('./models/error_handler/handler').errorHandler;
 
 // INICIALIZAR VARIABLES
 // ==================================================
-var app = express()
+var app = express();
 
 
 // MIDDLEWARES
@@ -33,11 +37,15 @@ app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     res.header("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
     next();
-  })
+});
+
+// CONEXION DB
+app.use(myConnection(mysql, dbOptions, 'pool'));
 
 // RUTAS
 app.use('/app', appRoute);
 
+app.use(errorHandler);
 
 // ESCUCHAR PETICIONES
 // ==================================================
