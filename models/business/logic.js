@@ -15,37 +15,48 @@ var ResposeError = require('../responseError');
 
 module.exports.getMessaje = function (req, res, next){
 
-    req.getConnection(function(err, connection) {
-      
-        if (err) {
-            var error 
-                = new ResposeError
-                    ('500','Error en el servidor, intente más tarde', err.code, '1000');
-            err.responseError = error;
-            return next(err);
-        } 
-        
-        connection.query('SELECT mensaje from test1 where pk_test = ?', [1], function(err, results) {
-            if (err) {
-                var error 
-                    = new ResposeError('500','Error en el servidor, intente más tarde', err.code, '1001');
-                err.responseError = error;
-                return next(err);
-            }
-              
+    getConnection(req)
+        .then( connection => exectQry(connection))
+        .then( (data) => {
+
             var objMensaje = new Mensaje();
             var objResponse = new Response();
-  
-            objMensaje.setMensaje(results[0].mensaje);
+            
+            objMensaje.setMensaje(data);
           
             objResponse.setOk(true);
             objResponse.setObject(objMensaje);
   
-            res
-                .status(200)
-                .json(objResponse);
+            res.status(200).json(objResponse);
+        })
+        .catch( (err) => {
+            var error = new ResposeError(
+                                        '500',
+                                        'Error en el servidor, intente más tarde', 
+                                        err.code,
+                                        '1001');
+                err.responseError = error;
+                return next(err);
         });
-      
+}
+
+function getConnection(req) {
+    return new Promise( (resolve, reject) => {
+        req.getConnection(function(err, connection) {     
+            if (err) 
+                return reject(err);
+            resolve(connection);
+        });
     });
 }
 
+function exectQry(connection){
+    return new Promise( (resolve, reject) => {
+        connection.query('SELECT mensaje from test where pk_test = ?', 
+                            [1], function(err, results) {
+            if (err) 
+                return reject(err);
+            resolve(results[0].mensaje);
+        });
+    });
+}
