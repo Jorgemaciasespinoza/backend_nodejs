@@ -10,14 +10,12 @@
 'use strict'
 
 module.exports.errorHandler = function(err, req, res, next) {
-    
-    // console.error(err); evitar funciones asincronas
 
-    if (err.responseError.status == '500'){
+    // console.error(err); evitar funciones asincronas
+    if (err.object.status == '500') {
         res
-        .status(500)
-        .json(err.responseError);    
+            .status(500)
+            .json(err);
     }
 
 }
-
